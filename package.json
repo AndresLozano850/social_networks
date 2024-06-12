@@ -4,7 +4,8 @@
   "description": "API REST con Stack MERN y autenticacion JWT para Red Social",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:watch":"node --watch index.js"
   },
   "author": "Andrés Camilo Lozano Palacios",
   "license": "ISC",
