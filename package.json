@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start:watch":"node --watch index.js"
+    "start:watch": "node --watch index.js"
   },
   "author": "Andrés Camilo Lozano Palacios",
   "license": "ISC",
@@ -14,8 +14,8 @@
     "cros": "^1.0.1",
     "express": "^4.19.2",
     "jwt-simple": "^0.5.6",
-    "mogoose": "^0.0.1-security",
     "moment": "^2.30.1",
+    "mongoose": "^8.4.1",
     "mongoose-pagination": "^1.0.0",
     "multer": "^1.4.5-lts.1",
     "validator": "^13.12.0"
