@@ -1,12 +1,38 @@
-// Importaciones 
+// Importaciones
+const connection = require("./database/connection");
+const express = require("express");
+const cors = require("cors");
 
-// Conexion a la bd
+// Mensaje de bienvenida
+console.log("API NODE arriba");
 
-// Configurar los cors: permite que las peticiones se hagan correctamente
+// Conexión a la BD
+connection();
 
-// hacer la conversion de datos (body a Objetos JS)
 
-// Configurar las Rutas
+// Crear servidor de Node
+const app = express();
+const puerto = 3900;
 
-//Configurar el servidor para escuchar las peticiones HTTP
+// Configurar cors: permite que las peticiones se hagan correctamente
+app.use(cors());
 
+// Conversión de datos (body a objetos JS)
+app.use(express.json());
+app.use(express.urlencoded({extended: true}));
+
+// Configurar rutas
+app.get('/test-route', (req, res)=>{
+   return res.status(200).json(
+    {
+        'id':1,
+        'name':'Andres Lozano',
+        'username':'andreslozano'
+    }
+   )
+});
+
+// Configurar el servidor para escuchar las peticiones HTTP
+app.listen(puerto, () => {
+  console.log("Servidor de NODE corriendo en el puerto", puerto)
+});
