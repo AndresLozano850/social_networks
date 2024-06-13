@@ -12,6 +12,7 @@
   "author": "Andrés Camilo Lozano Palacios",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "bcrypt-nodejs": "^0.0.3",
     "cors": "^2.8.5",
     "cros": "^1.0.1",
