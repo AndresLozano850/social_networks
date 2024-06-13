@@ -1,0 +1,11 @@
+//Importaciones de Express Router Ayuda para la utilizacion de los metodos de express
+import { Router } from "express";
+const router = Router();
+import { testFollow } from "../controllers/follow.js"
+
+// Definir las rutas
+
+router.get('/test-follow', testFollow);
+
+// Exportar el Router
+export default router;
