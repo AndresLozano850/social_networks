@@ -165,3 +165,49 @@ export const profile = async (req, res) => {
     });
   }
 }
+
+// Método para listar usuarios con paginación
+export const listUsers = async (req, res) => {
+  try {
+    // Controlar en qué página estamos y el número de ítemas por página
+    let page = req.params.page ? parseInt(req.params.page, 10) : 1;
+    let itemsPerPage = req.query.limit ? parseInt(req.query.limit, 10) : 5;
+
+    // Realizar la consulta paginada
+    const options = {
+      page: page,
+      limit: itemsPerPage,
+      select: '-password -role -__v'
+    };
+
+    const users = await User.paginate({}, options);
+
+    // Si no hay usuario en la página solicitada
+    if (!users || users.docs.length === 0) {
+      return res.status(404).send({
+        status: "error",
+        message: "No hay usuarios disponibles"
+      });
+    }
+
+    // Devolver los usuarios paginados
+    return res.status(200).json({
+      status: "success",
+      users: users.docs,
+      totalDocs: users.totalDocs,
+      totalPages: users.totalPages,
+      page: users.page,
+      pagingCounter: users.pagingCounter,
+      hasPrevPage: users.hasPrevPage,
+      hasNextPage: users.hasNextPage,
+      prevPage: users.prevPage,
+      nextPage: users.nextPage
+    });
+  } catch (error) {
+    console.log("Error al listar los usuarios:", error);
+    return res.status(500).send({
+      status: "error",
+      message: "Error al listar los usuarios"
+    });
+  }
+}
