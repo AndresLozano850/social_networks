@@ -4,12 +4,12 @@ import bcrypt from "bcrypt";
 import { createToken } from "../services/jwt.js";
 // Acciones de prueba
 export const testUser = (req, res) => {
-  return res.status(200).send({
+    return res.status(200).send({
     message: "Mensaje enviado desde el controlador: user.js"
   });
 }
 
-// Registro de usuarios
+// Metodo para el Registro de usuarios
 export const register = async (req, res) => {
   try {
     // Recoger datos de la petición
@@ -115,6 +115,7 @@ export const login = async (req, res) => {
         id: user._id,
         name: user.name,
         last_name: user.last_name,
+        bio: user.bio,
         email: user.email,
         nick: user.nick,
         role: user.role,
@@ -125,9 +126,42 @@ export const login = async (req, res) => {
 
   } catch (error) {
     console.log("Error en el login del usuario: ", error);
-    return res.status(500).json({
+    return res.status(500).send({
       status: "error",
       message: "Error en el login del usuario"
+    });
+  }
+}
+
+// Metodo para mostrar el perfil de usuario.
+
+export const profile = async (req, res) => {
+  try {
+    // Obtener el ID del usuario desde los parámetros de la URL
+    const userId = req.params.id;
+
+    // Buscar al usuario en laBD, excluimos la contraseña, rol, versión.
+    const user = await User.findById(userId).select('-password -role -__v');
+
+    // Verificar si el usuario existe
+    if (!user) {
+      return res.status(404).send({
+        status: "error",
+        message: "Usuario no encontrado"
+      });
+    }
+
+    // Devolver la información del perfil del usuario
+    return res.status(200).json({
+      status: "success",
+      user
+    });
+
+  } catch (error) {
+    console.log("Error al botener el perfil del usuario:", error);
+    return res.status(500).send({
+      status: "error",
+      message: "Error al obtener el perfil del usuario"
     });
   }
 }
