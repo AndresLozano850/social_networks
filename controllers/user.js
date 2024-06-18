@@ -323,6 +323,21 @@ export const uploadFiles = async (req, res) => {
           message: "Extensión del archivo es inválida."
         });
     }
+    // Comprobar tamaño del archivo (ej: maximo 5MB)
+    const fileSize =req.file.size;
+    const maxFileSize = 1 * 1024 * 1024;
+
+    if(fileSize>maxFileSize){
+      const filePath =req.file.path;
+      fs.unlinkSync(filePath);
+      return res.status(400).send({
+        status: "error",
+        message: "El tamaño del archivo excede el limite Maximo 1MB."
+      });
+
+    }
+
+
 
     // Guardar la imagen en la BD
     const userUpdated = await User.findOneAndUpdate(
