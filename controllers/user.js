@@ -2,7 +2,10 @@ import status from "express/lib/response.js";
 import User from "../models/user.js"
 import bcrypt from "bcrypt";
 import { createToken } from "../services/jwt.js";
-import fs from "fs";
+import fs, { exists } from "fs";
+import path from "path";
+import { error } from "console";
+
 // Acciones de prueba
 export const testUser = (req, res) => {
     return res.status(200).send({
@@ -366,6 +369,36 @@ export const uploadFiles = async (req, res) => {
     return res.status(500).send({
       status: "error",
       message: "Error al subir archivos"
+    });
+  }
+}
+
+// Metodo para mostrar la imagen del perfil (Avatar)
+export const avatar = async (req, res) => {
+  try {
+    // Obtener el parámetro de la url
+    const file = req.params.file;
+
+    // Obtener el path real de la imagen
+    const filePath = "./uploads/avatars/" + file;
+    
+    // Comprobamos si existe
+    fs.stat(filePath, (error, exists) => {
+      if(!exists){
+        return res.status(404).send({
+          status: "error",
+          message: "No existe la imagen"
+        });
+      }
+      // Devolver el archivo
+      return res.sendFile(path.resolve(filePath));
+    });
+
+  } catch (error) {
+    console.log("Error al mostrar la imagen", error);
+    return res.status(500).send({
+      status: "error",
+      message: "Error al mostrar la imagen"
     });
   }
 }
