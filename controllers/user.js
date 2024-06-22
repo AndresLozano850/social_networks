@@ -1,19 +1,18 @@
-import status from "express/lib/response.js";
 import User from "../models/user.js"
 import bcrypt from "bcrypt";
-import { createToken } from "../services/jwt.js";
-import fs, { exists } from "fs";
+import { createToken } from "../services/jwt.js"
+import fs from "fs";
 import path from "path";
-import { error } from "console";
+import { followThisUser } from "../services/followServices.js"
 
 // Acciones de prueba
 export const testUser = (req, res) => {
-    return res.status(200).send({
+  return res.status(200).send({
     message: "Mensaje enviado desde el controlador: user.js"
   });
 }
 
-// Metodo para el Registro de usuarios
+// Método para Registrar de usuarios
 export const register = async (req, res) => {
   try {
     // Recoger datos de la petición
@@ -137,28 +136,39 @@ export const login = async (req, res) => {
   }
 }
 
-// Metodo para mostrar el perfil de usuario.
-
+// Método para mostrar el perfil del usuario
 export const profile = async (req, res) => {
   try {
     // Obtener el ID del usuario desde los parámetros de la URL
     const userId = req.params.id;
 
-    // Buscar al usuario en laBD, excluimos la contraseña, rol, versión.
-    const user = await User.findById(userId).select('-password -role -__v');
+    // Verificar si el ID recibido del usuario autenticado existe
+    if (!req.user || !req.user.userId) {
+      return res.status(404).send({
+        status: "error",
+        message: "Usuario no autenticado"
+      });
+    }
+
+    // Buscar al usuario en la BD, excluimos la contraseña, rol, versión.
+    const userProfile = await User.findById(userId).select('-password -role -__v');
 
     // Verificar si el usuario existe
-    if (!user) {
+    if (!userProfile) {
       return res.status(404).send({
         status: "error",
         message: "Usuario no encontrado"
       });
     }
 
+    // Información de seguimiento - (req.user.userId = Id del usuario autenticado) 
+    const followInfo = await followThisUser(req.user.userId, userId);
+
     // Devolver la información del perfil del usuario
     return res.status(200).json({
       status: "success",
-      user
+      user: userProfile,
+      followInfo
     });
 
   } catch (error) {
@@ -297,7 +307,7 @@ export const updateUser = async (req, res) => {
   }
 }
 
-// Metodo para subir Imagenes (Imagen de Avatar - Imagen de Perfil) y actualizar la imagen de perfil
+// Método para subir imágenes (AVATAR - img de perfil) y Actualizar la imagen de perfil
 export const uploadFiles = async (req, res) => {
   try {
     // Recoger el archivo de imagen y comprobarmos que existe
@@ -326,21 +336,20 @@ export const uploadFiles = async (req, res) => {
           message: "Extensión del archivo es inválida."
         });
     }
-    // Comprobar tamaño del archivo (ej: maximo 5MB)
-    const fileSize =req.file.size;
-    const maxFileSize = 1 * 1024 * 1024;
 
-    if(fileSize>maxFileSize){
-      const filePath =req.file.path;
+    // Comprobar tamaño del archivo (pj: máximo 1MB)
+    const fileSize = req.file.size;
+    const maxFileSize = 1 * 1024 * 1024; // 5 MB
+
+    if (fileSize > maxFileSize) {
+      const filePath = req.file.path;
       fs.unlinkSync(filePath);
+
       return res.status(400).send({
         status: "error",
-        message: "El tamaño del archivo excede el limite Maximo 1MB."
+        message: "El tamaño del archivo excede el límite (máx 5B)"
       });
-
     }
-
-
 
     // Guardar la imagen en la BD
     const userUpdated = await User.findOneAndUpdate(
@@ -373,7 +382,7 @@ export const uploadFiles = async (req, res) => {
   }
 }
 
-// Metodo para mostrar la imagen del perfil (Avatar)
+// Método para mostrar la imagen del perfil (AVATAR)
 export const avatar = async (req, res) => {
   try {
     // Obtener el parámetro de la url
