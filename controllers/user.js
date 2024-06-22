@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import { createToken } from "../services/jwt.js"
 import fs from "fs";
 import path from "path";
-import { followThisUser } from "../services/followServices.js"
+import { followThisUser, followUserIds } from "../services/followServices.js"
 
 // Acciones de prueba
 export const testUser = (req, res) => {
@@ -109,7 +109,9 @@ export const login = async (req, res) => {
     // Generar token de autenticación
     const token = createToken(user);
 
+    
     // Devolver Token generado y los datos del usuario
+
     return res.status(200).json({
       status: "success",
       message: "Login exitoso",
@@ -204,6 +206,9 @@ export const listUsers = async (req, res) => {
       });
     }
 
+    // Listar los seguidores de un usuario, obtener el array de IDs de los usuarios que sigo
+    let followUsers = await followUserIds(req);
+
     // Devolver los usuarios paginados
     return res.status(200).json({
       status: "success",
@@ -215,7 +220,9 @@ export const listUsers = async (req, res) => {
       hasPrevPage: users.hasPrevPage,
       hasNextPage: users.hasNextPage,
       prevPage: users.prevPage,
-      nextPage: users.nextPage
+      nextPage: users.nextPage,
+      users_following: followUsers.following,
+      user_follow_me: followUsers.followers
     });
   } catch (error) {
     console.log("Error al listar los usuarios:", error);
