@@ -54,3 +54,38 @@ export const savePublication = async (req, res) => {
     });
   }
 }
+
+// Método para mostrar la publicación
+export const showPublication = async (req, res) => {
+  try {
+
+    // Obtener el id de la publicación de la url
+    const publicationId = req.params.id;
+
+    // Buscar la publicación por id desde la BD
+    const publicationStored = await Publication.findById(publicationId)
+    .populate('user_id', 'name last_name');
+
+    // Verificar si se encontró la publicación
+    if (!publicationStored) {
+      return res.status(500).send({
+        status: "error",
+        message: "No existe la publicación"
+      });
+    }
+
+    // Devolver respuesta exitosa 
+    return res.status(200).send({
+      status: "success",
+      message: "Publicación encontrada",
+      publication: publicationStored
+    });
+
+  } catch (error) {
+    console.log("Error al mostrar la publicación:", error);
+    return res.status(500).send({
+      status: "error",
+      message: "Error al mostrar la publicación"
+    });
+  }
+}
