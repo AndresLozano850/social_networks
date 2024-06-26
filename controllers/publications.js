@@ -1,7 +1,7 @@
 import Publication from "../models/publication.js"
 import fs from "fs";
 import path from "path";
-import { followUserIds } from "../services/followServices.js";
+import { followUserIds } from "../services/followServices.js"
 
 // Acciones de prueba
 export const testPublication = (req, res) => {
@@ -13,7 +13,7 @@ export const testPublication = (req, res) => {
 // Método para hacer una publicación
 export const savePublication = async (req, res) => {
   try {
-    
+
     // Obtener datos del body
     const params = req.body;
 
@@ -110,7 +110,7 @@ export const deletePublication = async (req, res) => {
       });
     }
 
-    // Devolver respuesta exitosa 
+    // Devolver respuesta exitosa
     return res.status(200).send({
       status: "success",
       message: "Publicación eliminada con éxito",
@@ -129,18 +129,20 @@ export const deletePublication = async (req, res) => {
 // Método para listar publicaciones de un usuario
 export const publicationsUser = async (req, res) => {
   try {
-    // Obtener el id del usuario 
-    const userId =req.params.id;
+    // Obtener el id del usuario
+    const userId = req.params.id;
+
     // Asignar el número de página
     let page = req.params.page ? parseInt(req.params.page, 10) : 1;
 
     // Número de usuarios que queremos mostrar por página
     let itemsPerPage = req.query.limit ? parseInt(req.query.limit, 10) : 5;
+
     // Configurar las opciones de la consulta
     const options = {
-      page:page,
+      page: page,
       limit: itemsPerPage,
-      sort: {created_at: -1 }, 
+      sort: { created_at: -1 },
       populate: {
         path: 'user_id',
         select: '-password -role -__v -email'
@@ -149,18 +151,20 @@ export const publicationsUser = async (req, res) => {
     };
 
     // Buscar las publicaciones del usuario
-    const publications =await Publication.paginate({ user_id: userId },options);
-    
-    if(!publications.docs || publications.docs.length <= 0){
+    const publications = await Publication.paginate({ user_id: userId }, options);
+
+    if (!publications.docs ||publications.docs.length <= 0 ){
       return res.status(404).send({
         status: "error",
         message: "No hay publicaciones para mostrar"
       });
     }
+
+    // Devolver respuesta exitosa
     return res.status(200).send({
       status: "success",
-      message: "Publicaciones del usuario:",
-      publication: publications.docs,
+      message: "Publicaciones del usuario: ",
+      publications: publications.docs,
       total: publications.totalDocs,
       pages: publications.totalPages,
       page: publications.page,
@@ -175,21 +179,21 @@ export const publicationsUser = async (req, res) => {
     });
   }
 }
+
 // Método para subir archivos (imagen) a las publicaciones que hacemos
 export const uploadMedia = async (req, res) => {
   try {
     // Obtener el id de la publicación
     const publicationId = req.params.id;
-    /*
-    // verificar el id de la Publicación 
+
+    // Verificar si la publicación existe en la base de datos antes de subir el archivo
     const publicationExists = await Publication.findById(publicationId);
     if (!publicationExists) {
       return res.status(404).send({
         status: "error",
-        message: "La publicación no existe"
+        message: "No existe la publicación"
       });
     }
-      */
 
     // Comprobamos que existe el archivo en el body
     if (!req.file) {
@@ -199,23 +203,23 @@ export const uploadMedia = async (req, res) => {
       });
     }
 
-    // Conseguir el nombre del archivo
+    // Obtener el nombre del archivo
     let image = req.file.originalname;
-
+    
     // Obtener la extensión del archivo
     const imageSplit = image.split(".");
     const extension = imageSplit[imageSplit.length -1];
 
     // Validar la extensión
     if (!["png", "jpg", "jpeg", "gif"].includes(extension.toLowerCase())){
-        //Borrar archivo subido
-        const filePath = req.file.path;
-        fs.unlinkSync(filePath);
+      //Borrar archivo subido
+      const invalidFilePath = req.file.path;
+      fs.unlinkSync(invalidFilePath );
 
-        return res.status(400).send({
-          status: "error",
-          message: "Extensión del archivo es inválida."
-        });
+      return res.status(400).send({
+        status: "error",
+        message: "Extensión del archivo es inválida."
+      });
     }
 
     // Comprobar tamaño del archivo (pj: máximo 1MB)
@@ -223,11 +227,23 @@ export const uploadMedia = async (req, res) => {
     const maxFileSize = 1 * 1024 * 1024; // 1 MB
 
     if (fileSize > maxFileSize) {
-      const filePath = req.file.path;
-      fs.unlinkSync(filePath);
+      const largeFilePath = req.file.path;
+      fs.unlinkSync(largeFilePath );
+
       return res.status(400).send({
         status: "error",
         message: "El tamaño del archivo excede el límite (máx 1 MB)"
+      });
+    }
+
+    // Verificar si el archivo realmente existe antes de proceder
+    const actualFilePath  = path.resolve("./uploads/publications/", req.file.filename);
+    try {
+      fs.statSync(actualFilePath); 
+    } catch (error) {
+      return res.status(404).send({
+        status: "error",
+        message: "El archivo no existe o hubo un error al verificarlo"
       });
     }
 
@@ -264,25 +280,25 @@ export const uploadMedia = async (req, res) => {
 // Método para mostrar el archivo subido a la publicación
 export const showMedia = async (req, res) => {
   try {
-    // Obtener el parametro del archivo desde la URL
+    // Obtener el parámetro del archivo desde la url
+    const file = req.params.file;
 
-    const file =req.params.file;
-    // Crer el path real de la imagen
+    // Crear el path real de la imagen
     const filePath = "./uploads/publications/" + file;
-    // Comprobamos si existe el archivo
+
+    // Comprobar si existe el archivo
     fs.stat(filePath, (error, exists) => {
-      if(!exists){
+      if(!exists) {
         return res.status(404).send({
           status: "error",
           message: "No existe la imagen"
         });
       }
-      // Devolver el archivo
+      // Si lo encuentra nos devolvueve un archivo
       return res.sendFile(path.resolve(filePath));
     });
 
   } catch (error) {
-    console.log("Error al mostrar la publicación:", error);
     return res.status(500).send({
       status: "error",
       message: "Error al mostrar archivo en la publicación"
