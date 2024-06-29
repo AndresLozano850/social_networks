@@ -65,6 +65,7 @@ export const register = async (req, res) => {
         name: user_to_save.name,
         last_name: user_to_save.last_name,
         nick: user_to_save.nick,
+        email: user_to_save.email
       }
     });
 
