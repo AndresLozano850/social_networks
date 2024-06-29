@@ -64,8 +64,7 @@ export const register = async (req, res) => {
         id: user_to_save.id,
         name: user_to_save.name,
         last_name: user_to_save.last_name,
-        nick: user_to_save.nick,
-        email: user_to_save.email
+        nick: user_to_save.nick
       }
     });
 
@@ -162,7 +161,7 @@ export const profile = async (req, res) => {
     }
 
     // Buscar al usuario en la BD, excluimos la contraseña, rol, versión.
-    const userProfile = await User.findById(userId).select('-password -role -__v -email');
+    const userProfile = await User.findById(userId).select('-password -role -__v');
 
     // Verificar si el usuario existe
     if (!userProfile) {
